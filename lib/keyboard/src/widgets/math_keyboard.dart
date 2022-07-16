@@ -7,6 +7,7 @@ import 'package:yoko/keyboard/src/widgets/decimal_separator.dart';
 import 'package:yoko/keyboard/src/widgets/keyboard_button.dart';
 import 'package:yoko/keyboard/src/widgets/math_field.dart';
 import 'package:yoko/keyboard/src/widgets/view_insets.dart';
+import 'package:yoko/utility/colors.dart';
 
 /// Enumeration for the types of keyboard that a math keyboard can adopt.
 ///
@@ -65,7 +66,7 @@ class MathKeyboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final curvedSlideAnimation = CurvedAnimation(
-      parent: slideAnimation ?? AlwaysStoppedAnimation(1),
+      parent: slideAnimation ?? const AlwaysStoppedAnimation(1),
       curve: Curves.ease,
     );
 
@@ -92,9 +93,9 @@ class MathKeyboard extends StatelessWidget {
                         slideAnimation == null ? null : curvedSlideAnimation,
                     child: Padding(
                       padding: const EdgeInsets.only(
-                        bottom: 4,
-                        left: 4,
-                        right: 4,
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
                       ),
                       child: Center(
                         child: ConstrainedBox(
@@ -104,13 +105,13 @@ class MathKeyboard extends StatelessWidget {
                           child: Column(
                             children: [
                               if (type != MathKeyboardType.numberOnly)
-                                _Variables(
-                                  controller: controller,
-                                  variables: variables,
-                                ),
+                                // _Variables(
+                                //   controller: controller,
+                                //   variables: variables,
+                                // ),
                               Padding(
                                 padding: const EdgeInsets.only(
-                                  top: 4,
+                                  top: 0,
                                 ),
                                 child: _Buttons(
                                   controller: controller,
@@ -302,9 +303,11 @@ class _Buttons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 230,
+    return Container(
+      color: Colors.grey[900],
+      height: 260,
       child: AnimatedBuilder(
+        
         animation: controller,
         builder: (context, child) {
           final layout =
@@ -313,7 +316,8 @@ class _Buttons extends StatelessWidget {
             children: [
               for (final row in layout)
                 SizedBox(
-                  height: 56,
+                  height: 52,
+                  
                   child: Row(
                     children: [
                       for (final config in row)
@@ -336,6 +340,7 @@ class _Buttons extends StatelessWidget {
                             icon: Icons.backspace,
                             iconSize: 22,
                             onTap: () => controller.goBack(deleteMode: true),
+                            highlightLevel: 2,
                           )
                         else if (config is PageButtonConfig)
                           _BasicButton(
@@ -343,22 +348,24 @@ class _Buttons extends StatelessWidget {
                             icon: controller.secondPage
                                 ? null
                                 : CustomKeyIcons.key_symbols,
-                            label: controller.secondPage ? '123' : null,
+                            label: controller.secondPage ? '123' : "F(x)",
                             onTap: controller.togglePage,
-                            highlightLevel: 1,
+                            highlightLevel: 2,
+                            asTex: true,
                           )
                         else if (config is PreviousButtonConfig)
                           _NavigationButton(
                             flex: config.flex,
                             icon: Icons.chevron_left_rounded,
                             onTap: controller.goBack,
+                            highlightLevel: 2,
                           )
                         else if (config is NextButtonConfig)
                           _NavigationButton(
-                            flex: config.flex,
-                            icon: Icons.chevron_right_rounded,
-                            onTap: controller.goNext,
-                          )
+                              flex: config.flex,
+                              icon: Icons.chevron_right_rounded,
+                              onTap: controller.goNext,
+                              highlightLevel: 2)
                         else if (config is SubmitButtonConfig)
                           _BasicButton(
                             flex: config.flex,
@@ -421,7 +428,7 @@ class _BasicButton extends StatelessWidget {
       result = Math.tex(
         label!,
         options: MathOptions(
-          fontSize: 22,
+          fontSize: 14,
           color: Colors.white,
         ),
       );
@@ -436,7 +443,7 @@ class _BasicButton extends StatelessWidget {
       result = Text(
         symbol!,
         style: const TextStyle(
-          fontSize: 22,
+          fontSize: 14,
           color: Colors.white,
         ),
       );
@@ -445,10 +452,10 @@ class _BasicButton extends StatelessWidget {
     result = KeyboardButton(
       onTap: onTap,
       color: highlightLevel > 1
-          ? Theme.of(context).colorScheme.secondary
+          ? null
           : highlightLevel == 1
-              ? Colors.grey[900]
-              : null,
+              ? const Color(0xff1f1f1f)
+              : const Color(0xff2d2d2d),
       child: result,
     );
 
@@ -468,6 +475,7 @@ class _NavigationButton extends StatelessWidget {
     this.icon,
     this.iconSize = 36,
     this.onTap,
+    required this.highlightLevel,
   }) : super(key: key);
 
   /// The flexible flex value.
@@ -482,6 +490,8 @@ class _NavigationButton extends StatelessWidget {
   /// Function used when user holds the button down.
   final VoidCallback? onTap;
 
+  final int highlightLevel;
+
   @override
   Widget build(BuildContext context) {
     return Expanded(
@@ -489,7 +499,11 @@ class _NavigationButton extends StatelessWidget {
       child: KeyboardButton(
         onTap: onTap,
         onHold: onTap,
-        color: Colors.grey[900],
+       color: highlightLevel > 1
+          ? null
+          : highlightLevel == 1
+              ? const Color(0xff1f1f1f)
+              : const Color(0xff2d2d2d),
         child: Icon(
           icon,
           color: Colors.white,
@@ -522,7 +536,7 @@ class _VariableButton extends StatelessWidget {
       child: Math.tex(
         name,
         options: MathOptions(
-          fontSize: 22,
+          fontSize: 16,
           color: Colors.white,
         ),
       ),

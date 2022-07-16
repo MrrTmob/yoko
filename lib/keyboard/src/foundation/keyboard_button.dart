@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:yoko/keyboard/src/foundation/node.dart';
+
 /// Class representing a button configuration.
 abstract class KeyboardButtonConfig {
   /// Constructs a [KeyboardButtonConfig].
@@ -203,7 +204,47 @@ final functionKeyboard = [
     ),
   ],
   [
+    const BasicKeyboardButtonConfig(
+      label: r'\log_{\Box}(\Box)',
+      value: r'\log_',
+      asTex: true,
+      args: [TeXArg.braces, TeXArg.parentheses],
+    ),
+    const BasicKeyboardButtonConfig(
+      label: r'\ln(\Box)',
+      value: r'\ln(',
+      asTex: true,
+      keyboardCharacters: ['l'],
+    ),
+    const BasicKeyboardButtonConfig(
+      label: r'\tan',
+      value: r'\tan(',
+      asTex: true,
+      keyboardCharacters: ['t'],
+    ),
+    const BasicKeyboardButtonConfig(
+      label: r'\tan^{-1}',
+      value: r'\tan^{-1}(',
+      asTex: true,
+    ),
+  ],
+  [
     const PageButtonConfig(flex: 3),
+    PreviousButtonConfig(),
+    NextButtonConfig(),
+    DeleteButtonConfig(),
+  ],
+];
+
+/// Standard keyboard for math expression input.
+final standardKeyboard = [
+  [
+    const BasicKeyboardButtonConfig(
+        label: r'x',
+        value: r'\frac',
+        args: [TeXArg.braces, TeXArg.braces],
+        asTex: true,
+        highlighted: true),
     const BasicKeyboardButtonConfig(
       label: '(',
       value: '(',
@@ -216,24 +257,9 @@ final functionKeyboard = [
       highlighted: true,
       keyboardCharacters: [')'],
     ),
-    PreviousButtonConfig(),
-    NextButtonConfig(),
-    DeleteButtonConfig(),
-  ],
-];
-
-/// Standard keyboard for math expression input.
-final standardKeyboard = [
-  [
     _digitButtons[7],
     _digitButtons[8],
     _digitButtons[9],
-    const BasicKeyboardButtonConfig(
-      label: '×',
-      value: r'\cdot',
-      keyboardCharacters: ['*'],
-      highlighted: true,
-    ),
     const BasicKeyboardButtonConfig(
       label: '÷',
       value: r'\frac',
@@ -243,30 +269,75 @@ final standardKeyboard = [
     ),
   ],
   [
+    const BasicKeyboardButtonConfig(
+        label: r'\Box^2',
+        value: '^2',
+        args: [TeXArg.braces],
+        asTex: true,
+        highlighted: true),
+    const BasicKeyboardButtonConfig(
+        label: r'\sqrt{\Box}',
+        value: r'\sqrt',
+        args: [TeXArg.braces],
+        asTex: true,
+        keyboardCharacters: ['r'],
+        highlighted: true),
+    const BasicKeyboardButtonConfig(
+        label: r'\frac{\Box}{\Box}',
+        value: r'\frac',
+        args: [TeXArg.braces, TeXArg.braces],
+        asTex: true,
+        highlighted: true),
     _digitButtons[4],
     _digitButtons[5],
     _digitButtons[6],
+    const BasicKeyboardButtonConfig(
+      label: '×',
+      value: r'\cdot',
+      keyboardCharacters: ['*'],
+      highlighted: true,
+    ),
+  ],
+  [
+    const BasicKeyboardButtonConfig(
+      label: r'\log_{\Box}(\Box)',
+      value: r'\log_',
+      asTex: true,
+      args: [TeXArg.braces, TeXArg.parentheses],
+      highlighted: true,
+    ),
+    _decimalButton,
+    _decimalButton,
+    _digitButtons[1],
+    _digitButtons[2],
+    _digitButtons[3],
+    _subtractButton,
+  ],
+  [
+    _decimalButton,
+    _decimalButton,
+    _decimalButton,
+    _decimalButton,
+    _digitButtons[0],
+    const BasicKeyboardButtonConfig(
+      label: '=',
+      value: '=',
+      keyboardCharacters: ['='],
+      highlighted: true,
+    ),
     const BasicKeyboardButtonConfig(
       label: '+',
       value: '+',
       keyboardCharacters: ['+'],
       highlighted: true,
     ),
-    _subtractButton,
-  ],
-  [
-    _digitButtons[1],
-    _digitButtons[2],
-    _digitButtons[3],
-    _decimalButton,
-    DeleteButtonConfig(),
   ],
   [
     const PageButtonConfig(),
-    _digitButtons[0],
     PreviousButtonConfig(),
     NextButtonConfig(),
-    SubmitButtonConfig(),
+    DeleteButtonConfig(),
+    //SubmitButtonConfig(),
   ],
 ];
 

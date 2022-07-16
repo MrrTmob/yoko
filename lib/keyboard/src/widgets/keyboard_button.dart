@@ -86,10 +86,10 @@ class _KeyboardButtonState extends State<KeyboardButton>
         ),
       },
       child: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(1),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(0),
             color: widget.color,
           ),
           child: AnimatedBuilder(
@@ -97,7 +97,7 @@ class _KeyboardButtonState extends State<KeyboardButton>
             builder: (context, child) {
               return DecoratedBox(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(1),
                   color: Colors.white.withOpacity(
                     Curves.easeInOut.transform(_animationController.value) / 3,
                   ),
