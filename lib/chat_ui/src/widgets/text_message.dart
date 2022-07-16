@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_link_previewer/flutter_link_previewer.dart'
     show LinkPreview, regexEmail, regexLink;
+import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_parsed_text/flutter_parsed_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -159,118 +160,242 @@ class TextMessage extends StatelessWidget {
     final emojiTextStyle = user.id == message.author.id
         ? theme.sentEmojiMessageTextStyle
         : theme.receivedEmojiMessageTextStyle;
+    final color = getUserAvatarNameColor(message.author,
+        InheritedChatTheme.of(context).theme.userAvatarNameColors);
+    final name = getUserName(message.author);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (showName)
-          nameBuilder?.call(message.author.id) ??
-              UserName(author: message.author),
-        if (enlargeEmojis)
-          if (isTextMessageTextSelectable)
-            SelectableText(message.text, style: emojiTextStyle)
-          else
-            Text(message.text, style: emojiTextStyle)
-        else
-          ParsedText(
-            parse: [
-              MatchText(
-                onTap: (mail) async {
-                  final url = Uri(scheme: 'mailto', path: mail);
-                  if (await canLaunchUrl(url)) {
-                    await launchUrl(url);
-                  }
-                },
-                pattern: regexEmail,
-                style: bodyLinkTextStyle ??
-                    bodyTextStyle.copyWith(
-                      decoration: TextDecoration.underline,
-                    ),
-              ),
-              MatchText(
-                onTap: (urlText) async {
-                  final protocolIdentifierRegex = RegExp(
-                    r'^((http|ftp|https):\/\/)',
-                    caseSensitive: false,
-                  );
-                  if (!urlText.startsWith(protocolIdentifierRegex)) {
-                    urlText = 'https://$urlText';
-                  }
-                  if (options.onLinkPressed != null) {
-                    options.onLinkPressed!(urlText);
-                  } else {
-                    final url = Uri.tryParse(urlText);
-                    if (url != null && await canLaunchUrl(url)) {
-                      await launchUrl(
-                        url,
-                        mode: LaunchMode.externalApplication,
-                      );
-                    }
-                  }
-                },
-                pattern: regexLink,
-                style: bodyLinkTextStyle ??
-                    bodyTextStyle.copyWith(
-                      decoration: TextDecoration.underline,
-                    ),
-              ),
-              MatchText(
-                pattern: PatternStyle.bold.pattern,
-                style: boldTextStyle ??
-                    bodyTextStyle.merge(PatternStyle.bold.textStyle),
-                renderText: ({required String str, required String pattern}) =>
-                    {
-                  'display': str.replaceAll(
-                    PatternStyle.bold.from,
-                    PatternStyle.bold.replace,
-                  ),
-                },
-              ),
-              MatchText(
-                pattern: PatternStyle.italic.pattern,
-                style: bodyTextStyle.merge(PatternStyle.italic.textStyle),
-                renderText: ({required String str, required String pattern}) =>
-                    {
-                  'display': str.replaceAll(
-                    PatternStyle.italic.from,
-                    PatternStyle.italic.replace,
-                  ),
-                },
-              ),
-              MatchText(
-                pattern: PatternStyle.lineThrough.pattern,
-                style: bodyTextStyle.merge(PatternStyle.lineThrough.textStyle),
-                renderText: ({required String str, required String pattern}) =>
-                    {
-                  'display': str.replaceAll(
-                    PatternStyle.lineThrough.from,
-                    PatternStyle.lineThrough.replace,
-                  ),
-                },
-              ),
-              MatchText(
-                pattern: PatternStyle.code.pattern,
-                style: codeTextStyle ??
-                    bodyTextStyle.merge(PatternStyle.code.textStyle),
-                renderText: ({required String str, required String pattern}) =>
-                    {
-                  'display': str.replaceAll(
-                    PatternStyle.code.from,
-                    PatternStyle.code.replace,
-                  ),
-                },
-              ),
-            ],
-            regexOptions: const RegexOptions(multiLine: true, dotAll: true),
-            selectable: isTextMessageTextSelectable,
-            style: bodyTextStyle,
-            text: message.text,
-            textWidthBasis: TextWidthBasis.longestLine,
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6.0),
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: InheritedChatTheme.of(context)
+                  .theme
+                  .userNameTextStyle
+                  .copyWith(color: color),
+            ),
           ),
+        message.text.contains("\$\$Show solution\$\$")
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    message.metadata!['question'] != null
+                        ? Math.tex(
+                            message.metadata!['question'],
+                            textScaleFactor: 1.2,
+                            textStyle: const TextStyle(color: Colors.white),
+                            mathStyle: MathStyle.display,
+                          )
+                        : const SizedBox(
+                            width: 0,
+                            height: 0,
+                          ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6, bottom: 8),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            height: 24,
+                            child: SelectableText(
+                              "ចម្លើយ: ",
+                              style:
+                                  TextStyle(fontSize: 15, color: Colors.white),
+                              textWidthBasis: TextWidthBasis.longestLine,
+                            ),
+                          ),
+                          message.metadata!['answer'] != null
+                              ? Math.tex(
+                                  message.metadata!['answer'],
+                                  textScaleFactor: 1.2,
+                                  textStyle: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w400),
+                                  mathStyle: MathStyle.display,
+                                )
+                              : const SizedBox(
+                                  width: 0,
+                                  height: 0,
+                                ),
+                        ],
+                      ),
+                    ),
+                    Visibility(
+                        visible: message.text.contains("\$\$Show solution\$\$"),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: SizedBox(
+                            height: 28,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    elevation: 0,
+                                    primary: Colors.white.withOpacity(0.3),
+                                  ),
+                                  clipBehavior: Clip.none,
+                                  onPressed: () {
+                                    Map<String, dynamic>? data =
+                                        message.metadata;
+                                    print(data);
+                                    // print(message.text.replaceAll(
+                                    //     "\$\$Show solution\$\$", ""));
+                                    // _settingModalBottomSheet(context, data);
+                                  },
+                                  child: const Text(
+                                    "Show solution →",
+                                    style: TextStyle(fontSize: 12),
+                                  )),
+                            ),
+                          ),
+                        ))
+                  ],
+                ),
+              )
+            : user.id == message.author.id
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Math.tex(
+                      message.text,
+                      textScaleFactor: 1.2,
+                      textStyle: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.w400),
+                      mathStyle: MathStyle.text,
+                    ),
+                  )
+                : SelectableText(
+                    message.text.replaceAll("\$\$Show solution\$\$", ""),
+                    style: user.id == message.author.id
+                        ? InheritedChatTheme.of(context)
+                            .theme
+                            .sentMessageBodyTextStyle
+                        : InheritedChatTheme.of(context)
+                            .theme
+                            .receivedMessageBodyTextStyle,
+                    textWidthBasis: TextWidthBasis.longestLine,
+                  ),
       ],
     );
   }
 }
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         if (showName)
+//           nameBuilder?.call(message.author.id) ??
+//               UserName(author: message.author),
+//         if (enlargeEmojis)
+//           if (isTextMessageTextSelectable)
+//             SelectableText(message.text, style: emojiTextStyle)
+//           else
+//             Text(message.text, style: emojiTextStyle)
+//         else
+//           ParsedText(
+//             parse: [
+//               MatchText(
+//                 onTap: (mail) async {
+//                   final url = Uri(scheme: 'mailto', path: mail);
+//                   if (await canLaunchUrl(url)) {
+//                     await launchUrl(url);
+//                   }
+//                 },
+//                 pattern: regexEmail,
+//                 style: bodyLinkTextStyle ??
+//                     bodyTextStyle.copyWith(
+//                       decoration: TextDecoration.underline,
+//                     ),
+//               ),
+//               MatchText(
+//                 onTap: (urlText) async {
+//                   final protocolIdentifierRegex = RegExp(
+//                     r'^((http|ftp|https):\/\/)',
+//                     caseSensitive: false,
+//                   );
+//                   if (!urlText.startsWith(protocolIdentifierRegex)) {
+//                     urlText = 'https://$urlText';
+//                   }
+//                   if (options.onLinkPressed != null) {
+//                     options.onLinkPressed!(urlText);
+//                   } else {
+//                     final url = Uri.tryParse(urlText);
+//                     if (url != null && await canLaunchUrl(url)) {
+//                       await launchUrl(
+//                         url,
+//                         mode: LaunchMode.externalApplication,
+//                       );
+//                     }
+//                   }
+//                 },
+//                 pattern: regexLink,
+//                 style: bodyLinkTextStyle ??
+//                     bodyTextStyle.copyWith(
+//                       decoration: TextDecoration.underline,
+//                     ),
+//               ),
+//               MatchText(
+//                 pattern: PatternStyle.bold.pattern,
+//                 style: boldTextStyle ??
+//                     bodyTextStyle.merge(PatternStyle.bold.textStyle),
+//                 renderText: ({required String str, required String pattern}) =>
+//                     {
+//                   'display': str.replaceAll(
+//                     PatternStyle.bold.from,
+//                     PatternStyle.bold.replace,
+//                   ),
+//                 },
+//               ),
+//               MatchText(
+//                 pattern: PatternStyle.italic.pattern,
+//                 style: bodyTextStyle.merge(PatternStyle.italic.textStyle),
+//                 renderText: ({required String str, required String pattern}) =>
+//                     {
+//                   'display': str.replaceAll(
+//                     PatternStyle.italic.from,
+//                     PatternStyle.italic.replace,
+//                   ),
+//                 },
+//               ),
+//               MatchText(
+//                 pattern: PatternStyle.lineThrough.pattern,
+//                 style: bodyTextStyle.merge(PatternStyle.lineThrough.textStyle),
+//                 renderText: ({required String str, required String pattern}) =>
+//                     {
+//                   'display': str.replaceAll(
+//                     PatternStyle.lineThrough.from,
+//                     PatternStyle.lineThrough.replace,
+//                   ),
+//                 },
+//               ),
+//               MatchText(
+//                 pattern: PatternStyle.code.pattern,
+//                 style: codeTextStyle ??
+//                     bodyTextStyle.merge(PatternStyle.code.textStyle),
+//                 renderText: ({required String str, required String pattern}) =>
+//                     {
+//                   'display': str.replaceAll(
+//                     PatternStyle.code.from,
+//                     PatternStyle.code.replace,
+//                   ),
+//                 },
+//               ),
+//             ],
+//             regexOptions: const RegexOptions(multiLine: true, dotAll: true),
+//             selectable: isTextMessageTextSelectable,
+//             style: bodyTextStyle,
+//             text: message.text,
+//             textWidthBasis: TextWidthBasis.longestLine,
+//           ),
+//       ],
+//     );
+//   }
+// }
 
 @immutable
 class TextMessageOptions {

@@ -340,7 +340,7 @@ class _Buttons extends StatelessWidget {
                             icon: Icons.backspace,
                             iconSize: 22,
                             onTap: () => controller.goBack(deleteMode: true),
-                            highlightLevel: 2,
+                            highlightLevel: 1,
                           )
                         else if (config is PageButtonConfig)
                           _BasicButton(
@@ -350,7 +350,7 @@ class _Buttons extends StatelessWidget {
                                 : CustomKeyIcons.key_symbols,
                             label: controller.secondPage ? '123' : "F(x)",
                             onTap: controller.togglePage,
-                            highlightLevel: 2,
+                            highlightLevel: 1,
                             asTex: true,
                           )
                         else if (config is PreviousButtonConfig)
@@ -358,14 +358,14 @@ class _Buttons extends StatelessWidget {
                             flex: config.flex,
                             icon: Icons.chevron_left_rounded,
                             onTap: controller.goBack,
-                            highlightLevel: 2,
+                            highlightLevel: 1,
                           )
                         else if (config is NextButtonConfig)
                           _NavigationButton(
                               flex: config.flex,
                               icon: Icons.chevron_right_rounded,
                               onTap: controller.goNext,
-                              highlightLevel: 2)
+                              highlightLevel: 1)
                         else if (config is SubmitButtonConfig)
                           _BasicButton(
                             flex: config.flex,
@@ -452,7 +452,7 @@ class _BasicButton extends StatelessWidget {
     result = KeyboardButton(
       onTap: onTap,
       color: highlightLevel > 1
-          ? null
+          ? primaryColor
           : highlightLevel == 1
               ? const Color(0xff1f1f1f)
               : const Color(0xff2d2d2d),
@@ -506,7 +506,7 @@ class _NavigationButton extends StatelessWidget {
               : const Color(0xff2d2d2d),
         child: Icon(
           icon,
-          color: Colors.white,
+          color: primaryColor,
           size: iconSize,
         ),
       ),

@@ -99,10 +99,9 @@ final _digitButtons = [
 ];
 
 const _decimalButton = BasicKeyboardButtonConfig(
-  label: '.',
-  value: '.',
+  label: r'.',
+  value: r'.',
   keyboardCharacters: ['.', ','],
-  highlighted: true,
 );
 
 const _subtractButton = BasicKeyboardButtonConfig(
@@ -240,14 +239,11 @@ final functionKeyboard = [
 final standardKeyboard = [
   [
     const BasicKeyboardButtonConfig(
-        label: r'x',
-        value: r'\frac',
-        args: [TeXArg.braces, TeXArg.braces],
-        asTex: true,
-        highlighted: true),
+        label: r'y', value: r'y', asTex: true, highlighted: true),
     const BasicKeyboardButtonConfig(
       label: '(',
-      value: '(',
+      value: '',
+      args: [TeXArg.parentheses],
       highlighted: true,
       keyboardCharacters: ['('],
     ),
@@ -270,11 +266,18 @@ final standardKeyboard = [
   ],
   [
     const BasicKeyboardButtonConfig(
-        label: r'\Box^2',
-        value: '^2',
+        label: r'\Box^{\Box}',
+        value: '^',
         args: [TeXArg.braces],
         asTex: true,
-        highlighted: true),
+        highlighted: true,
+        keyboardCharacters: [
+          '^',
+          // This is a workaround for keyboard layout that use ^ as a toggle key.
+          // In that case, "Dead" is reported as the character (e.g. for German
+          // keyboards).
+          'Dead'
+        ]),
     const BasicKeyboardButtonConfig(
         label: r'\sqrt{\Box}',
         value: r'\sqrt',
@@ -300,30 +303,56 @@ final standardKeyboard = [
   ],
   [
     const BasicKeyboardButtonConfig(
-      label: r'\log_{\Box}(\Box)',
-      value: r'\log_',
-      asTex: true,
-      args: [TeXArg.braces, TeXArg.parentheses],
-      highlighted: true,
-    ),
-    _decimalButton,
-    _decimalButton,
+        label: r'\log',
+        value: r'\log_',
+        asTex: true,
+        args: [TeXArg.braces, TeXArg.parentheses],
+        highlighted: true),
+    const BasicKeyboardButtonConfig(
+        label: r'\ln',
+        value: r'\ln',
+        asTex: true,
+        args: [TeXArg.parentheses],
+        keyboardCharacters: ['l'],
+        highlighted: true),
+    const BasicKeyboardButtonConfig(
+        label: r'e^{\Box}',
+        value: 'e^',
+        args: [TeXArg.braces],
+        asTex: true,
+        highlighted: true),
     _digitButtons[1],
     _digitButtons[2],
     _digitButtons[3],
     _subtractButton,
   ],
   [
-    _decimalButton,
-    _decimalButton,
-    _decimalButton,
+    const BasicKeyboardButtonConfig(
+        label: r'\cos',
+        value: r'\cos(',
+        asTex: true,
+        keyboardCharacters: ['c'],
+        highlighted: true),
+    const BasicKeyboardButtonConfig(
+        label: r'\sin',
+        value: r'\sin(',
+        asTex: true,
+        keyboardCharacters: ['s'],
+        highlighted: true),
+    const BasicKeyboardButtonConfig(
+        label: r'\lim',
+        value: r'\lim_',
+        asTex: true,
+        args: [TeXArg.braces, TeXArg.parentheses],
+        highlighted: true),
     _decimalButton,
     _digitButtons[0],
     const BasicKeyboardButtonConfig(
       label: '=',
       value: '=',
+      asTex: true,
       keyboardCharacters: ['='],
-      highlighted: true,
+      highlighted: true
     ),
     const BasicKeyboardButtonConfig(
       label: '+',
@@ -334,8 +363,23 @@ final standardKeyboard = [
   ],
   [
     const PageButtonConfig(),
+    const BasicKeyboardButtonConfig(
+        label: 'x', value: 'x', asTex: true, highlighted: true),
+    const BasicKeyboardButtonConfig(
+      label: r'\to',
+      value: r'\to',
+      asTex: true,
+      highlighted: true,
+    ),
+     const BasicKeyboardButtonConfig(
+      label: r'\infty',
+      value: r'\infty',
+      asTex: true,
+      highlighted: true
+    ),
     PreviousButtonConfig(),
     NextButtonConfig(),
+
     DeleteButtonConfig(),
     //SubmitButtonConfig(),
   ],

@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:yoko/keyboard/src/widgets/math_field.dart';
 
+import '../../../keyboard/math_keyboard.dart';
 import '../models/send_button_visibility_mode.dart';
 import 'attachment_button.dart';
 import 'inherited_chat_theme.dart';
@@ -74,11 +76,12 @@ class _InputState extends State<Input> {
   final _inputFocusNode = FocusNode();
   bool _sendButtonVisible = false;
   late TextEditingController _textController;
+  final _mathController = MathFieldEditingController();
 
   @override
   void initState() {
     super.initState();
-
+    _mathController.addListener(_handleTextControllerChange);
     _textController =
         widget.textEditingController ?? InputTextFieldController();
     _handleSendButtonVisibilityModeChange();
@@ -96,42 +99,64 @@ class _InputState extends State<Input> {
   void dispose() {
     _inputFocusNode.dispose();
     _textController.dispose();
+    _mathController.dispose();
     super.dispose();
   }
 
+  double _height = 0;
   @override
   Widget build(BuildContext context) {
     final isAndroid = defaultTargetPlatform == TargetPlatform.android;
     final isIOS = defaultTargetPlatform == TargetPlatform.iOS;
 
-    return GestureDetector(
-      onTap: () => _inputFocusNode.requestFocus(),
-      child: isAndroid || isIOS
-          ? _inputBuilder()
-          : Shortcuts(
-              shortcuts: {
-                LogicalKeySet(LogicalKeyboardKey.enter):
-                    const SendMessageIntent(),
-                LogicalKeySet(LogicalKeyboardKey.enter, LogicalKeyboardKey.alt):
-                    const NewLineIntent(),
-                LogicalKeySet(
-                  LogicalKeyboardKey.enter,
-                  LogicalKeyboardKey.shift,
-                ): const NewLineIntent(),
-              },
-              child: Actions(
-                actions: {
-                  SendMessageIntent: CallbackAction<SendMessageIntent>(
-                    onInvoke: (SendMessageIntent intent) =>
-                        _handleSendPressed(),
-                  ),
-                  NewLineIntent: CallbackAction<NewLineIntent>(
-                    onInvoke: (NewLineIntent intent) => _handleNewLine(),
-                  ),
+    return WillPopScope(
+      onWillPop: () async {
+        if (_height != 0) {
+          _inputFocusNode.unfocus();
+          setState(() {
+            _height = 0;
+          });
+          return false;
+        } else {
+          return true;
+        }
+      },
+      child: GestureDetector(
+        //onTap: () => _inputFocusNode.requestFocus(),
+        onTap: () {
+          _inputFocusNode.requestFocus();
+          setState(() {
+            _height = 300;
+          });
+        },
+        child: isAndroid || isIOS
+            ? _inputBuilder()
+            : Shortcuts(
+                shortcuts: {
+                  LogicalKeySet(LogicalKeyboardKey.enter):
+                      const SendMessageIntent(),
+                  LogicalKeySet(
+                          LogicalKeyboardKey.enter, LogicalKeyboardKey.alt):
+                      const NewLineIntent(),
+                  LogicalKeySet(
+                    LogicalKeyboardKey.enter,
+                    LogicalKeyboardKey.shift,
+                  ): const NewLineIntent(),
                 },
-                child: _inputBuilder(),
+                child: Actions(
+                  actions: {
+                    SendMessageIntent: CallbackAction<SendMessageIntent>(
+                      onInvoke: (SendMessageIntent intent) =>
+                          _handleSendPressed(),
+                    ),
+                    NewLineIntent: CallbackAction<NewLineIntent>(
+                      onInvoke: (NewLineIntent intent) => _handleNewLine(),
+                    ),
+                  },
+                  child: _inputBuilder(),
+                ),
               ),
-            ),
+      ),
     );
   }
 
@@ -159,17 +184,21 @@ class _InputState extends State<Input> {
   }
 
   void _handleSendPressed() {
-    final trimmedText = _textController.text.trim();
+    //final trimmedText = _textController.text.trim();
+    final trimmedText = _mathController.currentEditingValue().trim();
     if (trimmedText != '') {
       final partialText = types.PartialText(text: trimmedText);
       widget.onSendPressed(partialText);
       _textController.clear();
+      _mathController.clear();
     }
+    
   }
 
   void _handleTextControllerChange() {
     setState(() {
-      _sendButtonVisible = _textController.text.trim() != '';
+      _sendButtonVisible = !_mathController.isEmpty;
+      // _sendButtonVisible = _textController.text.trim() != '';
     });
   }
 
@@ -211,63 +240,117 @@ class _InputState extends State<Input> {
             decoration:
                 InheritedChatTheme.of(context).theme.inputContainerDecoration,
             padding: safeAreaInsets,
-            child: Row(
-              textDirection: TextDirection.ltr,
+            child: Stack(
               children: [
-                if (widget.onAttachmentPressed != null)
-                  AttachmentButton(
-                    isLoading: widget.isAttachmentUploading ?? false,
-                    onPressed: widget.onAttachmentPressed,
-                    padding: buttonPadding,
-                  ),
-                Expanded(
-                  child: Padding(
-                    padding: textPadding,
-                    child: TextField(
-                      controller: _textController,
-                      cursorColor: InheritedChatTheme.of(context)
-                          .theme
-                          .inputTextCursorColor,
-                      decoration: InheritedChatTheme.of(context)
-                          .theme
-                          .inputTextDecoration
-                          .copyWith(
-                            hintStyle: InheritedChatTheme.of(context)
-                                .theme
-                                .inputTextStyle
-                                .copyWith(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  textDirection: TextDirection.ltr,
+                  children: [
+                    if (widget.onAttachmentPressed != null)
+                      AttachmentButton(
+                        isLoading: widget.isAttachmentUploading ?? false,
+                        onPressed: widget.onAttachmentPressed,
+                        padding: buttonPadding,
+                      ),
+
+                    // Expanded(
+                    //   child: Padding(
+                    //     padding: textPadding,
+                    //     child: TextField(
+                    //       controller: _textController,
+                    //       cursorColor: InheritedChatTheme.of(context)
+                    //           .theme
+                    //           .inputTextCursorColor,
+                    //       decoration: InheritedChatTheme.of(context)
+                    //           .theme
+                    //           .inputTextDecoration
+                    //           .copyWith(
+                    //             hintStyle: InheritedChatTheme.of(context)
+                    //                 .theme
+                    //                 .inputTextStyle
+                    //                 .copyWith(
+                    //                   color: InheritedChatTheme.of(context)
+                    //                       .theme
+                    //                       .inputTextColor
+                    //                       .withOpacity(0.5),
+                    //                 ),
+                    //             hintText:
+                    //                 InheritedL10n.of(context).l10n.inputPlaceholder,
+                    //           ),
+                    //       focusNode: _inputFocusNode,
+                    //       keyboardType: TextInputType.multiline,
+                    //       maxLines: 5,
+                    //       minLines: 1,
+                    //       onChanged: widget.onTextChanged,
+                    //       onTap: widget.onTextFieldTap,
+                    //       style: InheritedChatTheme.of(context)
+                    //           .theme
+                    //           .inputTextStyle
+                    //           .copyWith(
+                    //             color: InheritedChatTheme.of(context)
+                    //                 .theme
+                    //                 .inputTextColor,
+                    //           ),
+                    //       textCapitalization: TextCapitalization.sentences,
+                    //     ),
+                    //   ),
+                    // ),
+
+                    Expanded(
+                      child: MathFormField(
+                        onChanged: widget.onTextChanged,
+                        controller: _mathController,
+                        decoration: InputDecoration(
+                          hintStyle: InheritedChatTheme.of(context)
+                              .theme
+                              .inputTextStyle
+                              .copyWith(
                                   color: InheritedChatTheme.of(context)
                                       .theme
                                       .inputTextColor
                                       .withOpacity(0.5),
-                                ),
-                            hintText:
-                                InheritedL10n.of(context).l10n.inputPlaceholder,
-                          ),
-                      focusNode: _inputFocusNode,
-                      keyboardType: TextInputType.multiline,
-                      maxLines: 5,
-                      minLines: 1,
-                      onChanged: widget.onTextChanged,
-                      onTap: widget.onTextFieldTap,
-                      style: InheritedChatTheme.of(context)
-                          .theme
-                          .inputTextStyle
-                          .copyWith(
-                            color: InheritedChatTheme.of(context)
-                                .theme
-                                .inputTextColor,
-                          ),
-                      textCapitalization: TextCapitalization.sentences,
+                                  fontSize: 16),
+                          hintText:
+                              InheritedL10n.of(context).l10n.inputPlaceholder,
+                          border: InputBorder.none,
+                        ),
+                        focusNode: _inputFocusNode,
+                        onFieldSubmitted: (e) {
+                          print(e);
+                          setState(() {
+                            _height = 0;
+                          });
+                        },
+                      ),
+                    ),
+                    Visibility(
+                      visible: _sendButtonVisible,
+                      child: SendButton(
+                        onPressed: _handleSendPressed,
+                        padding: buttonPadding,
+                      ),
+                    ),
+                  ],
+                ),
+                GestureDetector(
+                  onTap: () {
+                    _inputFocusNode.requestFocus();
+                    setState(() {
+                      _height = 320;
+                    });
+                  },
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      color: Colors.red.withOpacity(0).withOpacity(0),
+                      height: 60,
+                      width: 300,
                     ),
                   ),
                 ),
-                Visibility(
-                  visible: _sendButtonVisible,
-                  child: SendButton(
-                    onPressed: _handleSendPressed,
-                    padding: buttonPadding,
-                  ),
+                Container(
+                  height: _height,
                 ),
               ],
             ),
